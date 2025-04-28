@@ -9,17 +9,20 @@ with open('models/preprocessor.pkl', 'rb') as f:
     preprocessor = pickle.load(f)
 with open('models/rf_model.pkl', 'rb') as f:
     rf_model = pickle.load(f)
-with open('models/lr_model.pkl', 'rb') as f:
-    lr_model = pickle.load(f)
+with open('models/gb_model.pkl', 'rb') as f:
+    gb_model = pickle.load(f)
 
 # Load training data to get feature information
 train_df = pd.read_csv('data/train.csv')
 
-# Define the top 10 important features
+# Define the top 10 important features for user input
 top_10_features = [
     'OverallQual', 'GrLivArea', 'TotalBsmtSF', 'GarageCars', 'YearBuilt',
     'FullBath', 'Neighborhood', 'ExterQual', '1stFlrSF', 'BsmtFinSF1'
 ]
+
+# Get all features that the preprocessor expects (excluding 'Id' and 'SalePrice')
+all_features = [col for col in train_df.columns if col not in ['Id', 'SalePrice']]
 
 # Streamlit UI
 st.title("Công cụ dự đoán giá nhà")
@@ -44,27 +47,32 @@ for feature in top_10_features:
         else:
             input_data[feature] = st.number_input(f"{feature} (ví dụ: {int(median_val)})", value=median_val)
 
+# Add missing columns to input_data with default values from train_df
+for feature in all_features:
+    if feature not in input_data:
+        if train_df[feature].dtype == 'object':  # Categorical feature
+            input_data[feature] = 'missing'  # Default value for categorical features
+        else:  # Numerical feature
+            input_data[feature] = train_df[feature].median()  # Default value for numerical features
+
 # Predict button
 if st.button("Dự đoán giá nhà"):
     # Log raw input values
     st.write("### Raw Input Values")
-    st.write(input_data)
+    st.write({k: input_data[k] for k in top_10_features})  # Only show the 10 features the user entered
     
     # Preprocess user input
-    input_processed = preprocess_user_input(input_data, top_10_features, preprocessor, train_df)
+    input_processed = preprocess_user_input(input_data, all_features, preprocessor, train_df)
     
     # Make predictions using both models
     rf_pred = rf_model.predict(input_processed)[0]
-    lr_pred = lr_model.predict(input_processed)[0]
-    
-    # Inverse log transformation for Linear Regression
-    lr_pred = np.expm1(lr_pred)
+    gb_pred = gb_model.predict(input_processed)[0]
     
     # Clip negative predictions
     rf_pred = max(0, rf_pred)
-    lr_pred = max(0, lr_pred)
+    gb_pred = max(0, gb_pred)
     
     # Display prediction results
     st.write("### Kết quả dự đoán")
     st.write(f"**Dự đoán từ Random Forest:** ${rf_pred:,.2f}")
-    st.write(f"**Dự đoán từ Linear Regression:** ${lr_pred:,.2f}")
+    st.write(f"**Dự đoán từ Gradient Boosting:** ${gb_pred:,.2f}")

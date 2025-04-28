@@ -5,13 +5,13 @@ import os
 # Get the Python executable from the current virtual environment
 python_executable = sys.executable
 
-# List of scripts to run (removed train_rf_reduced.py and train_lr_reduced.py)
 scripts = [
     'src/eda.py',
-    'src/train_lr.py',  # Full feature set
+    'src/train_gb.py',  # Full feature set
     'src/train_rf.py',  # Full feature set
     'src/predict.py',
-    'src/evaluate.py'
+    'src/evaluate.py',
+    'src/visualize.py'
 ]
 
 # Run each script

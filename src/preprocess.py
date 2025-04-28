@@ -40,6 +40,10 @@ def preprocess_data(df, is_train=True, preprocessor=None, selected_features=None
     numeric_cols = [col for col in numeric_cols if col not in ZERO_FILL_COLS and col != 'SalePrice']
     for col in numeric_cols:
         df[col] = df[col].fillna(df[col].median())
+        # Clip outliers in numeric columns
+        q_low = df[col].quantile(0.01)
+        q_high = df[col].quantile(0.99)
+        df[col] = df[col].clip(q_low, q_high)
     
     # Fill missing values for categorical columns with 'missing'
     categorical_cols = df.select_dtypes(include=['object']).columns
@@ -165,6 +169,10 @@ def preprocess_user_input(user_input, feature_cols, preprocessor, train_df):
     for col in numeric_cols:
         if col in input_df.columns:
             input_df[col] = input_df[col].fillna(train_df[col].median())
+            # Clip outliers in numeric columns
+            q_low = train_df[col].quantile(0.01)
+            q_high = train_df[col].quantile(0.99)
+            input_df[col] = input_df[col].clip(q_low, q_high)
     
     categorical_cols = train_df.select_dtypes(include=['object']).columns
     for col in categorical_cols:

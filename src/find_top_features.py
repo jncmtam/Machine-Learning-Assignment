@@ -10,7 +10,7 @@ with open('models/preprocessor.pkl', 'rb') as f:
     preprocessor = pickle.load(f)
 
 # Đọc mô hình Ridge Regression
-with open('models/lr_model.pkl', 'rb') as f:
+with open('models/gb_model.pkl', 'rb') as f:
     model = pickle.load(f)
 
 # Chuẩn bị dữ liệu
