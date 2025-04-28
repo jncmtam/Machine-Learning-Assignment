@@ -1,33 +1,33 @@
-import os
 import subprocess
 import sys
+import os
 
-# Use the Python interpreter from the active environment
+# Get the Python executable from the current virtual environment
 python_executable = sys.executable
 
-# List of all subscript
+# List of scripts to run (removed train_rf_reduced.py and train_lr_reduced.py)
 scripts = [
-    "src/train_lr.py",
-    "src/train_rf.py",
-    "src/predict.py",
-    "src/evaluate.py"
+    'src/eda.py',
+    'src/train_lr.py',  # Full feature set
+    'src/train_rf.py',  # Full feature set
+    'src/predict.py',
+    'src/evaluate.py'
 ]
 
-# Run regular scripts
+# Run each script
 for script in scripts:
-    print(f"Running {script}...")
-    result = subprocess.run([python_executable, script], check=True)
-    if result.returncode != 0:
-        print(f"Error running {script}")
-        sys.exit(1)
+    if os.path.exists(script):
+        print(f"Running {script}...")
+        result = subprocess.run([python_executable, script], check=True)
+    else:
+        print(f"Script {script} not found!")
 
-# Run the Streamlit app separately
-streamlit_script = "src/estimate_price.py"
-print(f"Running Streamlit app: {streamlit_script}...")
-try:
-    subprocess.run([python_executable, "-m", "streamlit", "run", streamlit_script], check=True)
-except subprocess.CalledProcessError as e:
-    print(f"Error running Streamlit: {e}")
-    sys.exit(1)
-
-print("Pipeline executed successfully!")
+# Prompt to run Streamlit app
+run_streamlit = input("Do you want to run the Streamlit app (estimate_price.py)? [y/n]: ").strip().lower()
+if run_streamlit == 'y':
+    streamlit_script = 'src/estimate_price.py'
+    if os.path.exists(streamlit_script):
+        print(f"Running {streamlit_script} with Streamlit...")
+        result = subprocess.run(['streamlit', 'run', streamlit_script])
+    else:
+        print(f"Script {streamlit_script} not found!")

@@ -1,19 +1,35 @@
-import pickle
 import pandas as pd
-from preprocess import load_data, preprocess_data
+import pickle
+from preprocess import preprocess_data
 
-def load_model(model_path):
-    with open(model_path, 'rb') as f:
-        return pickle.load(f)
+# Load test data
+test_df = pd.read_csv('data/test.csv')
+test_ids = test_df['Id']
 
-test_df, _ = load_data('data/test.csv')
-ids = test_df['Id']
-# Drop "Id" column before preprocessing
-X_test = preprocess_data(test_df.drop('Id', axis=1), is_train=False)
+# Load preprocessor and models (reduced features)
+with open('models/preprocessor.pkl', 'rb') as f:
+    preprocessor = pickle.load(f)
+with open('models/rf_model.pkl', 'rb') as f:
+    rf_model = pickle.load(f)
+with open('models/lr_model.pkl', 'rb') as f:
+    lr_model = pickle.load(f)
 
-model = load_model('models/random_forest.pkl')  # Hoặc linear_regression.pkl
-predictions = model.predict(X_test)
+# Preprocess test data
+X_test = preprocess_data(test_df, is_train=False, preprocessor=preprocessor)
 
-output = pd.DataFrame({'Id': ids, 'SalePrice': predictions})
-output.to_csv('output/predictions.csv', index=False)
-print("Predictions saved to output/predictions.csv")
+# Make predictions
+rf_pred = rf_model.predict(X_test)
+lr_pred = lr_model.predict(X_test)
+
+# Average predictions from both models (optional ensemble)
+final_pred = (rf_pred + lr_pred) / 2
+
+# Create submission DataFrame
+submission = pd.DataFrame({
+    'Id': test_ids,
+    'SalePrice': final_pred
+})
+
+# Save predictions
+submission.to_csv('predictions.csv', index=False)
+print("Predictions saved to predictions.csv")

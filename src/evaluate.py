@@ -1,49 +1,56 @@
-import pickle
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, root_mean_squared_error
-from preprocess import load_data, preprocess_data
-from sklearn.model_selection import train_test_split
+import pickle
+import numpy as np
+from sklearn.metrics import mean_squared_error, r2_score
+from preprocess import preprocess_data
 
-def load_model(model_path):
-    with open(model_path, 'rb') as f:
-        return pickle.load(f)
+# Define top 10 features
+top_10_features = [
+    'OverallQual', 'GrLivArea', 'TotalBsmtSF', 'GarageCars', 'YearBuilt',
+    'FullBath', 'Neighborhood', 'ExterQual', '1stFlrSF', 'BsmtFinSF1'
+]
 
-# Load training data only
-train_df, _ = load_data('data/train.csv')
-# Drop "Id" column before preprocess
-train_df = train_df.drop('Id', axis=1)
+# Load training data
+train_df = pd.read_csv('data/train.csv')
 
-# Split into train and validation sets
-X, y = preprocess_data(train_df, is_train=True)
-X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+# Load the preprocessor used during training
+with open('models/preprocessor.pkl', 'rb') as f:
+    preprocessor = pickle.load(f)
 
-# Evaluate Linear Regression
-print("Evaluating Linear Regression Model:")
-lr_model = load_model('models/linear_regression.pkl')
-lr_pred = lr_model.predict(X_val)
-print("MAE:", mean_absolute_error(y_val, lr_pred))
-print("RMSE:", root_mean_squared_error(y_val, lr_pred))
-print("R² Score:", r2_score(y_val, lr_pred))
-print()
+# Preprocess data with top 10 features
+X_train, y_train, _ = preprocess_data(train_df, is_train=True, preprocessor=preprocessor, selected_features=top_10_features)
+print(f"Number of features in X_train: {X_train.shape[1]}")
 
-# Evaluate Random Forest
-print("Evaluating Random Forest Model:")
-rf_model = load_model('models/random_forest.pkl')
-rf_pred = rf_model.predict(X_val)
-print("MAE:", mean_absolute_error(y_val, rf_pred))
-print("RMSE:", root_mean_squared_error(y_val, rf_pred))
-print("R² Score:", r2_score(y_val, rf_pred))
+# Load models
+with open('models/rf_model.pkl', 'rb') as f:
+    rf_model = pickle.load(f)
+with open('models/lr_model.pkl', 'rb') as f:
+    lr_model = pickle.load(f)
 
-plt.figure(figsize=(10, 6))
-plt.scatter(range(len(y_val)), y_val, color='blue', label='True SalePrice', alpha=0.5)
-plt.scatter(range(len(lr_pred)), lr_pred, color='orange', label='Linear Regression Predictions', alpha=0.5)
-plt.scatter(range(len(rf_pred)), rf_pred, color='green', label='Random Forest Predictions', alpha=0.5)
-plt.xlabel('Sample Index')
-plt.ylabel('SalePrice')
-plt.title('True SalePrice vs Model Predictions')
-plt.legend()
-plt.grid(True)
-plt.savefig('output/model_comparison.png')
-plt.show()
-print("Comparison plot saved to output/model_comparison.png")
+# Evaluate with top 10 features
+rf_pred = rf_model.predict(X_train)
+rf_rmse = np.sqrt(mean_squared_error(y_train, rf_pred))
+rf_r2 = r2_score(y_train, rf_pred)
+
+# Adjust for log-transformed Linear Regression
+lr_pred = lr_model.predict(X_train)
+lr_pred = np.expm1(lr_pred)  # Inverse log transformation
+y_train_eval = y_train  # Use original SalePrice for metrics
+if y_train.min() < 0:  # Check if y_train is log-transformed
+    y_train_eval = np.expm1(y_train)
+
+lr_rmse = np.sqrt(mean_squared_error(y_train_eval, lr_pred))
+lr_r2 = r2_score(y_train_eval, lr_pred)
+
+print("Performance with top 10 features:")
+print(f"Random Forest - RMSE: {rf_rmse:.2f}, R^2: {rf_r2:.4f}")
+print(f"Linear Regression - RMSE: {lr_rmse:.2f}, R^2: {lr_r2:.4f}")
+
+# Inspect Linear Regression coefficients
+feature_names = X_train.columns
+lr_coefs = pd.DataFrame({
+    'Feature': feature_names,
+    'Coefficient': lr_model.coef_
+})
+print("\nLinear Regression Coefficients (Top 10 by magnitude):")
+print(lr_coefs.reindex(lr_coefs['Coefficient'].abs().sort_values(ascending=False).index).head(10))

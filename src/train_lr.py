@@ -1,16 +1,32 @@
 import pandas as pd
 import pickle
-from sklearn.linear_model import LinearRegression
-from preprocess import load_data, preprocess_data
+import numpy as np
+from sklearn.linear_model import Ridge
+from preprocess import preprocess_data
 
-train_df, _ = load_data('data/train.csv')
-# Drop "Id" column
-train_df = train_df.drop('Id', axis=1)
-X_train, y_train = preprocess_data(train_df)
+# Define top 10 features
+top_10_features = [
+    'OverallQual', 'GrLivArea', 'TotalBsmtSF', 'GarageCars', 'YearBuilt',
+    'FullBath', 'Neighborhood', 'ExterQual', '1stFlrSF', 'BsmtFinSF1'
+]
 
-model = LinearRegression()
+# Load training data
+train_df = pd.read_csv('data/train.csv')
+
+# Preprocess data with top 10 features
+X_train, y_train, preprocessor = preprocess_data(train_df, is_train=True, selected_features=top_10_features)
+
+# Apply log transformation to SalePrice
+y_train = np.log1p(y_train)
+
+# Train model with Ridge regression
+model = Ridge(alpha=2.0)
 model.fit(X_train, y_train)
 
-with open('models/linear_regression.pkl', 'wb') as f:
+# Save model and preprocessor
+with open('models/lr_model.pkl', 'wb') as f:
     pickle.dump(model, f)
-print("Linear Regression model saved!")
+with open('models/preprocessor.pkl', 'wb') as f:
+    pickle.dump(preprocessor, f)
+
+print("Ridge Regression model (log-transformed, top 10 features) and preprocessor saved successfully!")
