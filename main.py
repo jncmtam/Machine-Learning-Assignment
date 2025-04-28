@@ -28,6 +28,6 @@ if run_streamlit == 'y':
     streamlit_script = 'src/estimate_price.py'
     if os.path.exists(streamlit_script):
         print(f"Running {streamlit_script} with Streamlit...")
-        result = subprocess.run(['streamlit', 'run', streamlit_script])
+        result = subprocess.run([python_executable, '-m', 'streamlit', 'run', streamlit_script])
     else:
         print(f"Script {streamlit_script} not found!")
