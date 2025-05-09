@@ -2,20 +2,20 @@ import subprocess
 import sys
 import os
 
-# Get the Python executable from the current virtual environment
+
 python_executable = sys.executable
 
 scripts = [
     'src/eda.py',
-    'src/train_gb.py',  # Full feature set
-    'src/train_rf.py',  # Full feature set
+    'src/train_gb.py',  
+    'src/train_rf.py',  
     'src/predict.py',
     'src/evaluate.py',
     'src/visualize.py',
     'src/EDA_preprocess.py'
 ]
 
-# Run each script
+
 for script in scripts:
     if os.path.exists(script):
         print(f"Running {script}...")
@@ -23,7 +23,7 @@ for script in scripts:
     else:
         print(f"Script {script} not found!")
 
-# Prompt to run Streamlit app
+
 run_streamlit = input("Do you want to run the Streamlit app (estimate_price.py)? [y/n]: ").strip().lower()
 if run_streamlit == 'y':
     streamlit_script = 'src/estimate_price.py'

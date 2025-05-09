@@ -3,13 +3,13 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import os
 
-# Ensure output directory exists
+
 os.makedirs('output', exist_ok=True)
 
-# Load training data
+
 train_df = pd.read_csv('data/train.csv')
 
-# 1. Histogram of SalePrice
+
 plt.figure(figsize=(10, 6))
 sns.histplot(train_df['SalePrice'], kde=True, color='blue')
 plt.title('Distribution of SalePrice')
@@ -18,7 +18,7 @@ plt.ylabel('Frequency')
 plt.savefig('output/saleprice_histogram.png')
 plt.close()
 
-# 2. Correlation Heatmap (Numerical Features)
+
 numeric_cols = train_df.select_dtypes(include=['int64', 'float64']).columns
 corr_matrix = train_df[numeric_cols].corr()
 plt.figure(figsize=(12, 8))
@@ -27,7 +27,7 @@ plt.title('Correlation Heatmap of Numerical Features')
 plt.savefig('output/correlation_heatmap.png')
 plt.close()
 
-# 3. Scatter Plots: Key Numerical Features vs. SalePrice
+
 key_numeric_features = ['LotArea', 'GrLivArea', 'TotalBsmtSF']
 for feature in key_numeric_features:
     plt.figure(figsize=(8, 6))
@@ -38,7 +38,7 @@ for feature in key_numeric_features:
     plt.savefig(f'output/{feature}_vs_saleprice_scatter.png')
     plt.close()
 
-# 4. Box Plots: Key Categorical Features vs. SalePrice
+
 key_categorical_features = ['Neighborhood', 'ExterQual']
 for feature in key_categorical_features:
     plt.figure(figsize=(10, 6))

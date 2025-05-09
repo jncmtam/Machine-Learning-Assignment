@@ -3,17 +3,17 @@ import pickle
 from sklearn.ensemble import RandomForestRegressor
 from preprocess import preprocess_data
 
-# Load training data
+
 train_df = pd.read_csv('data/train.csv')
 
-# Preprocess data with all features (no feature selection)
+
 X_train, y_train, preprocessor = preprocess_data(train_df, is_train=True)
 
-# Train model
+
 model = RandomForestRegressor(random_state=42)
 model.fit(X_train, y_train)
 
-# Save model and preprocessor
+
 with open('models/rf_model.pkl', 'wb') as f:
     pickle.dump(model, f)
 with open('models/preprocessor.pkl', 'wb') as f:

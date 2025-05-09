@@ -11,34 +11,34 @@ import shap
 from preprocess import preprocess_data
 import os
 
-# Set Seaborn style for plots
+
 sns.set_style('whitegrid')
 sns.set_palette("husl")
 
-# Ensure output directory exists
+
 os.makedirs('output', exist_ok=True)
 
-# Load training data
+
 train_df = pd.read_csv('data/train.csv')
 
-# Load the preprocessor used during training
+
 with open('models/preprocessor.pkl', 'rb') as f:
     preprocessor = pickle.load(f)
 
-# Preprocess data with all features (no feature selection)
+
 X_train, y_train, _ = preprocess_data(train_df, is_train=True, preprocessor=preprocessor)
 
-# Load models
+
 with open('models/gb_model.pkl', 'rb') as f:
     rf_model = pickle.load(f)
 with open('models/gb_model.pkl', 'rb') as f:
     gb_model = pickle.load(f)  
 
-# Make predictions
+
 rf_pred = rf_model.predict(X_train)
 gb_pred = gb_model.predict(X_train)
 
-# Compute metrics
+
 rf_rmse = np.sqrt(mean_squared_error(y_train, rf_pred))
 rf_mae = mean_absolute_error(y_train, rf_pred)
 rf_r2 = r2_score(y_train, rf_pred)
@@ -46,7 +46,7 @@ gb_rmse = np.sqrt(mean_squared_error(y_train, gb_pred))
 gb_mae = mean_absolute_error(y_train, gb_pred)
 gb_r2 = r2_score(y_train, gb_pred)
 
-# 1. Predicted vs. Actual Scatter Plots
+
 plt.figure(figsize=(12, 6))
 plt.subplot(1, 2, 1)
 plt.scatter(y_train, rf_pred, alpha=0.5, color='blue', label='Random Forest')
@@ -68,7 +68,7 @@ plt.tight_layout()
 plt.savefig('output/predicted_vs_actual.png')
 plt.close()
 
-# 2. Residual Plots
+
 rf_residuals = y_train - rf_pred
 gb_residuals = y_train - gb_pred
 
@@ -89,7 +89,7 @@ plt.tight_layout()
 plt.savefig('output/residuals_distribution.png')
 plt.close()
 
-# 3. Residuals vs. Fitted Plot
+
 plt.figure(figsize=(12, 6))
 plt.subplot(1, 2, 1)
 plt.scatter(rf_pred, rf_residuals, alpha=0.5, color='blue')
@@ -109,7 +109,7 @@ plt.tight_layout()
 plt.savefig('output/residuals_vs_fitted.png')
 plt.close()
 
-# 4. Learning Curves
+
 def plot_learning_curve(estimator, title, X, y, cv=5, train_sizes=np.linspace(0.1, 1.0, 10)):
     train_sizes, train_scores, val_scores = learning_curve(
         estimator, X, y, cv=cv, n_jobs=1, train_sizes=train_sizes, scoring='neg_mean_squared_error'
@@ -141,7 +141,7 @@ plot_learning_curve(gb_model, 'Gradient Boosting: Learning Curve', X_train, y_tr
 plt.savefig('output/gb_learning_curve.png')
 plt.close()
 
-# 5. Error Metrics Bar Plot
+
 metrics = pd.DataFrame({
     'Model': ['Random Forest', 'Gradient Boosting'] * 3,
     'Metric': ['RMSE'] * 2 + ['MAE'] * 2 + ['R²'] * 2,
@@ -154,7 +154,7 @@ plt.title('Model Performance Comparison (RMSE, MAE, R²)')
 plt.savefig('output/error_metrics_comparison.png')
 plt.close()
 
-# 6. Permutation Feature Importance
+
 rf_perm_importance = permutation_importance(rf_model, X_train, y_train, n_repeats=10, random_state=42)
 gb_perm_importance = permutation_importance(gb_model, X_train, y_train, n_repeats=10, random_state=42)
 
@@ -185,7 +185,7 @@ plt.tight_layout()
 plt.savefig('output/permutation_importance.png')
 plt.close()
 
-# 7. Distribution of Key Features
+
 key_features = ['GrLivArea', 'TotalBsmtSF', 'YearBuilt']
 for feature in key_features:
     plt.figure(figsize=(8, 6))
@@ -196,14 +196,14 @@ for feature in key_features:
     plt.savefig(f'output/{feature}_distribution.png')
     plt.close()
 
-# 8. Missing Value Heatmap
+
 plt.figure(figsize=(12, 6))
 sns.heatmap(train_df.isnull(), cbar=False, cmap='viridis')
 plt.title('Missing Values Heatmap')
 plt.savefig('output/missing_values_heatmap.png')
 plt.close()
 
-# 9. Outlier Detection Boxplots
+
 for feature in key_features:
     plt.figure(figsize=(8, 6))
     sns.boxplot(x=train_df[feature], color='orange')
@@ -212,7 +212,7 @@ for feature in key_features:
     plt.savefig(f'output/{feature}_boxplot_outliers.png')
     plt.close()
 
-# 10. Feature Engineering Visualization (Age of House)
+
 train_df['AgeOfHouse'] = train_df['YrSold'] - train_df['YearBuilt']
 plt.figure(figsize=(8, 6))
 sns.scatterplot(x=train_df['AgeOfHouse'], y=train_df['SalePrice'], alpha=0.5, color='teal')
@@ -222,7 +222,7 @@ plt.ylabel('SalePrice')
 plt.savefig('output/age_of_house_vs_saleprice.png')
 plt.close()
 
-# 11. PCA 2D Plot
+
 pca = PCA(n_components=2)
 X_pca = pca.fit_transform(X_train)
 plt.figure(figsize=(10, 6))
@@ -234,16 +234,16 @@ plt.title('PCA 2D Projection of Training Data')
 plt.savefig('output/pca_2d_plot.png')
 plt.close()
 
-# 12. SHAP Plots
-# Initialize SHAP explainer for Random Forest
+
+
 explainer_rf = shap.TreeExplainer(rf_model)
 shap_values_rf = explainer_rf.shap_values(X_train)
 
-# Initialize SHAP explainer for Gradient Boosting
+
 explainer_gb = shap.TreeExplainer(gb_model)
 shap_values_gb = explainer_gb.shap_values(X_train)
 
-# SHAP Summary Plot for Random Forest
+
 plt.figure(figsize=(10, 6))
 shap.summary_plot(shap_values_rf, X_train, plot_type="bar", show=False)
 plt.title('Random Forest: SHAP Feature Importance')
@@ -251,7 +251,7 @@ plt.tight_layout()
 plt.savefig('output/rf_shap_summary.png')
 plt.close()
 
-# SHAP Summary Plot for Gradient Boosting
+
 plt.figure(figsize=(10, 6))
 shap.summary_plot(shap_values_gb, X_train, plot_type="bar", show=False)
 plt.title('Gradient Boosting: SHAP Feature Importance')
@@ -259,7 +259,7 @@ plt.tight_layout()
 plt.savefig('output/gb_shap_summary.png')
 plt.close()
 
-# 13. Distribution of Predictions
+
 plt.figure(figsize=(10, 6))
 sns.histplot(rf_pred, kde=True, color='blue', label='Random Forest', bins=50, alpha=0.5)
 sns.histplot(gb_pred, kde=True, color='green', label='Gradient Boosting', bins=50, alpha=0.5)
@@ -270,7 +270,7 @@ plt.legend()
 plt.savefig('output/predictions_distribution_train.png')
 plt.close()
 
-# 14. Feature Importance (for Random Forest and Gradient Boosting)
+
 feature_names = X_train.columns
 rf_importances = pd.DataFrame({
     'Feature': feature_names,
