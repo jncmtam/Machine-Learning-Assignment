@@ -11,7 +11,8 @@ scripts = [
     'src/train_rf.py',  # Full feature set
     'src/predict.py',
     'src/evaluate.py',
-    'src/visualize.py'
+    'src/visualize.py',
+    'src/EDA_preprocess.py'
 ]
 
 # Run each script
