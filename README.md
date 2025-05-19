@@ -1,3 +1,5 @@
+# Estate Price Prediction using Ensamble Learning Methos
+## This project was developed as part of my first university-level machine learning course. It predicts estate prices using ensemble learning techniques such as Random Forest and Gradient Boosting.
 ## How to Run
 
 1. Clone the repo
@@ -31,3 +33,10 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+## Author : `Chu Minh Tam` - ML/NLP Researcher
+
+## Contact :
+
+- jn.cmtam@gmail.com
+- tam.chu2213009cs@hcmut.edu.vn
+- +84 327628468
