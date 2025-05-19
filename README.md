@@ -1,5 +1,5 @@
 # Estate Price Prediction using Ensamble Learning Methos
-## This project was developed as part of my first university-level machine learning course. It predicts estate prices using ensemble learning techniques such as Random Forest and Gradient Boosting.
+- This project was developed as part of my first university-level machine learning course. It predicts estate prices using ensemble learning techniques such as Random Forest and Gradient Boosting.
 ## How to Run
 
 1. Clone the repo
